@@ -1,0 +1,69 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.4.613.9944",
+      "templateHash": "17412232611500085646"
+    }
+  },
+  "parameters": {
+    "sbNamespaceName": {
+      "type": "string"
+    },
+    "sbQueueName": {
+      "type": "string"
+    },
+    "sbSku": {
+      "type": "string",
+      "defaultValue": "Standard",
+      "allowedValues": [
+        "Basic",
+        "Standard",
+        "Premium"
+      ]
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]"
+    }
+  },
+  "functions": [],
+  "resources": [
+    {
+      "type": "Microsoft.ServiceBus/namespaces",
+      "apiVersion": "2018-01-01-preview",
+      "name": "[parameters('sbNamespaceName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[parameters('sbSku')]"
+      },
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.ServiceBus/namespaces/queues",
+      "apiVersion": "2021-01-01-preview",
+      "name": "[parameters('sbQueueName')]",
+      "properties": {
+        "lockDuration": "PT2M",
+        "maxSizeInMegabytes": 2048,
+        "requiresDuplicateDetection": true,
+        "requiresSession": false,
+        "deadLetteringOnMessageExpiration": false,
+        "duplicateDetectionHistoryTimeWindow": "PT20M",
+        "maxDeliveryCount": 5,
+        "enablePartitioning": true
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ServiceBus/namespaces', parameters('sbNamespaceName'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "sbId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.ServiceBus/namespaces', parameters('sbNamespaceName'))]"
+    }
+  }
+}

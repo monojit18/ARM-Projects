@@ -1,0 +1,126 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "namePrefix": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 11
+      },
+      "location": {
+        "type": "string",
+        "defaultValue": "[deployment().location]"
+      }
+    },
+    "variables": {
+      "rgName1": "[concat(parameters('namePrefix'), 'rg1')]",
+      "rgName2": "[concat(parameters('namePrefix'), 'rg2')]",
+      "storageNameA": "[concat(parameters('namePrefix'), uniqueString(subscription().id), 'a')]",
+      "storageNameB": "[concat(parameters('namePrefix'), uniqueString(subscription().id), 'b')]",
+      "storageNameC": "[concat(parameters('namePrefix'), uniqueString(subscription().id), 'c')]",
+      "storageNameD": "[concat(parameters('namePrefix'), uniqueString(subscription().id), 'd')]"
+    },
+    "resources": [
+      {
+        "type": "Microsoft.Resources/resourceGroups",
+        "apiVersion": "2020-06-01",
+        "name": "[variables('rgName1')]",
+        "location": "[parameters('location')]",
+        "properties": {}
+      },
+      {
+        "type": "Microsoft.Resources/deployments",
+        "apiVersion": "2020-06-01",
+        "name": "stackDeployment",
+        "resourceGroup": "[variables('rgName1')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Resources/resourceGroups/', variables('rgName1'))]"
+        ],
+        "properties": {
+          "mode": "Incremental",
+          "template": {
+            "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+            "contentVersion": "1.0.0.0",
+            "parameters": {},
+            "variables": {},
+            "resources": [
+              // {
+              //   "type": "Microsoft.Storage/storageAccounts",
+              //   "apiVersion": "2019-04-01",
+              //   "name": "[variables('storageNameA')]",
+              //   "location": "[parameters('location')]",
+              //   "sku": {
+              //     "name": "Standard_LRS"
+              //   },
+              //   "kind": "StorageV2",
+              //   "properties": {}
+              // },
+              {
+                "type": "Microsoft.Storage/storageAccounts",
+                "apiVersion": "2019-04-01",
+                "name": "[variables('storageNameB')]",
+                "location": "[parameters('location')]",
+                "sku": {
+                  "name": "Standard_LRS"
+                },
+                "kind": "StorageV2",
+                "properties": {}
+              }
+            ],
+            "outputs": {}
+          }
+        }
+      },
+      {
+        "type": "Microsoft.Resources/resourceGroups",
+        "apiVersion": "2020-06-01",
+        "name": "[variables('rgName2')]",
+        "location": "[parameters('location')]",
+        "properties": {}
+      },
+      {
+        "type": "Microsoft.Resources/deployments",
+        "apiVersion": "2020-06-01",
+        "name": "stackDeployment",
+        "resourceGroup": "[variables('rgName2')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Resources/resourceGroups/', variables('rgName2'))]"
+        ],
+        "properties": {
+          "mode": "Incremental",
+          "template": {
+            "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+            "contentVersion": "1.0.0.0",
+            "parameters": {},
+            "variables": {},
+            "resources": [
+              // {
+              //   "type": "Microsoft.Storage/storageAccounts",
+              //   "apiVersion": "2019-04-01",
+              //   "name": "[variables('storageNameC')]",
+              //   "location": "[parameters('location')]",
+              //   "sku": {
+              //     "name": "Standard_LRS"
+              //   },
+              //   "kind": "StorageV2",
+              //   "properties": {}
+              // },
+              {
+                "type": "Microsoft.Storage/storageAccounts",
+                "apiVersion": "2019-04-01",
+                "name": "[variables('storageNameD')]",
+                "location": "[parameters('location')]",
+                "sku": {
+                  "name": "Standard_LRS"
+                },
+                "kind": "StorageV2",
+                "properties": {}
+              }
+            ],
+            "outputs": {}
+          }
+        }
+      }
+    ],
+    "outputs": {}
+  }

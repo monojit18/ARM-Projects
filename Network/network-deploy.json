@@ -1,0 +1,78 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "vnetName": {
+        "type": "string",
+        "defaultValue": "aks-vnet"
+      },
+      "vnetPrefix": {
+        "type": "string",
+        "defaultValue": "173.0.0.0/16"
+      },
+      "subnetName": {
+        "type": "string",
+        "defaultValue": "aks-subnet"
+      },
+      "subnetPrefix": {
+        "type": "string",
+        "defaultValue": "173.0.0.0/22"        
+      },      
+      "appgwSubnetName": {
+        "type": "string",
+        "defaultValue": "appgw-subnet"
+      },
+      "appgwSubnetPrefix": {
+        "type": "string",
+        "defaultValue": "173.0.4.0/27"
+      },      
+      "location": {
+        "type": "string",
+        "defaultValue": "[resourceGroup().location]"
+      }
+    },
+    "variables": {},
+    "resources": [
+      {
+        "apiVersion": "2018-10-01",
+        "type": "Microsoft.Network/virtualNetworks",
+        "name": "[parameters('vnetName')]",
+        "location": "[parameters('location')]",
+        "properties": {
+          "addressSpace": {
+            "addressPrefixes": [
+              "[parameters('vnetPrefix')]"
+            ]
+          }
+        },
+        "resources": [
+          {
+            "apiVersion": "2018-10-01",
+            "type": "subnets",
+            "location": "[parameters('location')]",
+            "name": "[parameters('subnetName')]",
+            "dependsOn": [
+              "[parameters('vnetName')]"
+            ],
+            "properties": {
+              "addressPrefix": "[parameters('subnetPrefix')]"
+            }
+          },          
+          {
+            "apiVersion": "2018-10-01",
+            "type": "subnets",
+            "location": "[parameters('location')]",
+            "name": "[parameters('appgwSubnetName')]",
+            "dependsOn": [
+              "[parameters('vnetName')]",
+              "[parameters('subnetName')]"
+            ],
+            "properties": {
+              "addressPrefix": "[parameters('appgwSubnetPrefix')]"
+            }
+          }
+        ]
+      }
+    ]
+  }
+  
