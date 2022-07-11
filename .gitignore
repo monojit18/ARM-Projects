@@ -2,7 +2,6 @@
 **/.DS_Store
 **/.vscode
 **/Certs
-**/Misc
 **/Dump
 !README.md
 *.parameters.json

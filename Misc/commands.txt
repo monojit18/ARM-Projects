@@ -1,0 +1,185 @@
+tenantId=""
+subscriptionId=""
+resourceGroup="arm-workshop-rg"
+objectId=""
+
+az login --tenant $tenantId
+
+az bicep install
+az bicep upgrade
+az bicep decompile -f <file_name>
+
+Log Workspace
+=============
+lwName="arm-workshop-lw"
+lwResourceGroup="arm-workshop-rg"
+lwSku="PerGB2018"
+lwRetention=60
+dailyQuotaGb=1
+logWorkspaceInfo='{"lwRGName":"arm-workshop-rg","location":"eastus","lwName":"arm-workshop-lw","lwSku":"PerGB2018","lwRetention":60,"dailyQuotaGb":1}'
+
+az deployment group create -f ./logworkspace-deploy.bicep -g $lwResourceGroup \
+--parameters logWorkspaceInfo=$logWorkspaceInfo  
+
+Storage
+========
+storageAccountName="armwkshstg"
+
+az deployment group create -f ./storage-deploy.bicep -g $resourceGroup \
+--parameters storageAccountName=$storageAccountName \
+blobContainers='("logblob","cacheblob","testblob")' \
+queues='("queue1","queue2")'
+
+Network
+========
+vnetName="arm-vnet"
+vnetPrefix="50.0.0.0/22"
+subnetsList='({"name":"arm-subnet","prefix":"50.0.0.0/24"},{"name":"arm-subnet2","prefix":"50.0.1.0/24"},{"name":"arm-subnet3","prefix":"50.0.2.0/24"})'
+
+vnetName2="arm-vnet2"
+vnetPrefix2="60.0.0.0/23"
+subnetsList2='({"name":"arm-subnet","prefix":"60.0.0.0/24"},{"name":"arm-subnet2","prefix":"60.0.1.0/24"})'
+
+az deployment group create -f ./network-deploy.bicep -g $resourceGroup \
+--parameters vnetName=$vnetName2 vnetPrefix=$vnetPrefix2 \
+--parameters subnetsList=$subnetsList2
+
+az deployment group create -f ./network-deploy.bicep -g $resourceGroup \
+--parameters vnetName=$vnetName vnetPrefix=$vnetPrefix \
+--parameters subnetsList=$subnetsList
+
+Peering
+========
+vnetName=$vnetName
+remoteVnetName=$vnetName2
+remoteVnetRG=$resourceGroup
+
+az deployment group create -f ./vnet-peering-deploy.bicep -g $resourceGroup \
+--parameters vnetName=$vnetName remoteVnetName=$remoteVnetName \
+remoteVnetRG=$remoteVnetRG
+
+az deployment group create -f ./vnet-peering-deploy.bicep -g $resourceGroup \
+--parameters vnetName=$vnetName2 remoteVnetName=$vnetName \
+remoteVnetRG=$resourceGroup
+
+
+Private DNS Zone
+=================
+zoneName="armpvtdns.com"
+aRecordName="www"
+aRecordsArray='("1.1.1.1","2.2.2.2")'
+cnameRecord="test"
+cnameAlias="apim.azure-api.net"
+vnetName="aks-devops-vnet"
+vnetResourceGroup="devops-workshop-rg"
+ttl=1800
+
+az deployment group create -f ./private-dns-zone-deploy.bicep -g $resourceGroup \
+--parameters zoneName=$zoneName aRecordName=$aRecordName \
+aRecordsArray=$aRecordsArray cnameRecord=$cnameRecord cnameAlias=$cnameAlias \
+vnetName=$vnetName vnetResourceGroup=$vnetResourceGroup \
+ttl=$ttl
+
+ACR
+=====
+acrName="armwkshacr"
+az deployment group create -f ./acr-deploy.bicep -g $resourceGroup \
+--parameters acrName=$acrName
+
+KeyVault
+=========
+keyVaultName="arm-workshop-kv"
+az deployment group create -f ./keyvault-deploy.bicep -g $resourceGroup \
+--parameters keyVaultName=$keyVaultName objectId=$objectId
+
+AppGW
+=====
+applicationGatewayName="arm-workshop-appgw"
+keyVaultName="arm-workshop-kv"
+vnetName="arm-vnet"
+appgwSubnetName="appgw-subnet"
+httpsListenerNames='("dev","qa")'
+backendIpAddress="25.0.0.100"
+
+az deployment group create -f ./aksauto-appgw-deploy.bicep -g $resourceGroup \
+--parameters @./aksauto-appgw-deploy.parameters.json \
+--parameters applicationGatewayName=$applicationGatewayName \
+vnetName=$vnetName subnetName=$appgwSubnetName \
+httpsListenerNames=$httpsListenerNames \
+backendIpAddress=$backendIpAddress
+
+APIM
+=====
+apimResourceGroup="apim-workshop-rg"
+apimName="apim-workshop-hybrid"
+skuName="Developer"
+skuCapacity=1
+vnetName="apim-workshop-vnet"
+vnetPrefix="17.0.0.0/24"
+subnetName="apim-workshop-subnet"
+subnetPrefix="17.0.0.0/27"
+vnetType="None"
+
+az deployment group create -f ./apim-deploy.bicep -g $apimResourceGroup \
+--parameters apimName=$apimName skuName=$skuName skuCapacity=$skuCapacity \
+vnetName=$vnetName vnetPrefix=$vnetPrefix \
+subnetName=$subnetName subnetPrefix=$subnetPrefix \
+vnetType=$vnetType
+
+ServiceBus
+============
+serviceBusNamespaceName="socialstdns"
+tweetServiceBusQueueName="tweetqueue"
+OcrServiceBusTopicName="ocrtopic"
+nextHopServiceBusTopicName="nexthoptopic"
+ocrServiceBusSubscriptionName="ocrsubscription"
+nextHopServiceBusSubscriptionName="nexthopsubscription"
+
+az deployment group create -f ./servicebus-deploy.bicep -g $resourceGroup \
+--parameters serviceBusNamespaceName=$serviceBusNamespaceName \
+tweetServiceBusQueueName=$tweetServiceBusQueueName \
+OcrServiceBusTopicName=$OcrServiceBusTopicName \
+nextHopServiceBusTopicName=$nextHopServiceBusTopicName \
+ocrServiceBusSubscriptionName=$ocrServiceBusSubscriptionName \
+nextHopServiceBusSubscriptionName=$nextHopServiceBusSubscriptionName
+
+EventHub
+============
+eventHubNamespaceName="armwkshpehns"
+skuName="Standard"
+ocrEventHubName="armocreh"
+iotEventHubName="armioteh"
+
+clusterName="armwkshpcluster"
+dedicatedEventHubNamespaceName="armwkshpdedicstedehns"
+dedicatedEventHubName="armdedicatedeh"
+
+az deployment group create -f ./eventhub-deploy.bicep -g $resourceGroup \
+--parameters skuName=$skuName eventHubNamespaceName=$eventHubNamespaceName \
+ocrEventHubName=$ocrEventHubName iotEventHubName=$iotEventHubName
+
+az deployment group create -f ./eventhub-dedicated-deploy.bicep -g $resourceGroup \
+--parameters skuName=$skuName clusterName=$clusterName \
+dedicatedEventHubNamespaceName=$dedicatedEventHubNamespaceName \
+dedicatedEventHubName=$dedicatedEventHubName
+
+EventGrid
+============
+eventGridTopicName="armwkshoptopic"
+eventGridOCRSubscriptionName="armocrsub"
+eventGridEHOCRNamespace=$eventHubNamespaceName
+eventGridEHOCRName=$ocrEventHubName
+
+az deployment group create -f ./eventgrid-eventhub-deploy.bicep -g $resourceGroup \
+--parameters eventGridTopicName=$eventGridTopicName \
+eventGridOCRSubscriptionName=$eventGridOCRSubscriptionName \
+eventGridEHOCRNamespace=$eventGridEHOCRNamespace \
+eventGridEHOCRName=$eventGridEHOCRName
+
+
+
+
+
+
+
+
