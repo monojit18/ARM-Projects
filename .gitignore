@@ -1,6 +1,8 @@
+!.gitignore
+**/.DS_Store
+**/.vscode
 **/Certs
 **/Misc
 **/Dump
-!.gitignore
 !README.md
 *.parameters.json
